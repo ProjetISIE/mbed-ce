@@ -62,6 +62,13 @@
                 mbed-cli
                 socat # Serial terminal for manual testing
                 valgrind # Debugging and profiling
+                # nativeBuildInputs
+                cmake # Modern build tool
+                cppcheck # C++ Static analysis
+                doctest # Testing framework
+                llvm # For llvm-cov
+                ninja # Modern build tool
+                pkg-config # Build tool
               ];
               # nativeBuildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.nativeBuildInputs;
               # buildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.buildInputs;
