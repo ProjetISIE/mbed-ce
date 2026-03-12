@@ -1,0 +1,26 @@
+[
+{
+  "directory": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/build",
+  "command": "/nix/store/m3vif4iryv9gqiwgakm60dcqrqxsk9m7-armv7l-unknown-linux-gnueabihf-gcc-wrapper-15.2.0/bin/armv7l-unknown-linux-gnueabihf-gcc -Dsoc_cv_av -I/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/include -std=gnu2x -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -o CMakeFiles/tp3.dir/src/main.c.o -c /home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/main.c",
+  "file": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/main.c",
+  "output": "CMakeFiles/tp3.dir/src/main.c.o"
+},
+{
+  "directory": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/build",
+  "command": "/nix/store/m3vif4iryv9gqiwgakm60dcqrqxsk9m7-armv7l-unknown-linux-gnueabihf-gcc-wrapper-15.2.0/bin/armv7l-unknown-linux-gnueabihf-gcc -Dsoc_cv_av -I/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/include -std=gnu2x -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -o CMakeFiles/tp3.dir/src/alt_generalpurpose_io.c.o -c /home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/alt_generalpurpose_io.c",
+  "file": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/alt_generalpurpose_io.c",
+  "output": "CMakeFiles/tp3.dir/src/alt_generalpurpose_io.c.o"
+},
+{
+  "directory": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/build",
+  "command": "/nix/store/m3vif4iryv9gqiwgakm60dcqrqxsk9m7-armv7l-unknown-linux-gnueabihf-gcc-wrapper-15.2.0/bin/armv7l-unknown-linux-gnueabihf-gcc -Dsoc_cv_av -I/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/include -std=gnu2x -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -o CMakeFiles/tp3.dir/src/states.c.o -c /home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/states.c",
+  "file": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/states.c",
+  "output": "CMakeFiles/tp3.dir/src/states.c.o"
+},
+{
+  "directory": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/build",
+  "command": "/nix/store/m3vif4iryv9gqiwgakm60dcqrqxsk9m7-armv7l-unknown-linux-gnueabihf-gcc-wrapper-15.2.0/bin/armv7l-unknown-linux-gnueabihf-gcc -Dsoc_cv_av -I/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/include -std=gnu2x -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -o CMakeFiles/tp3.dir/src/gpio.c.o -c /home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/gpio.c",
+  "file": "/home/gf/dev/polytechDiploma/systèmesEmbarqués.mcu/tp3/src/gpio.c",
+  "output": "CMakeFiles/tp3.dir/src/gpio.c.o"
+}
+]
