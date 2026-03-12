@@ -93,9 +93,8 @@
               # Export compile commands JSON for LSP and other tools
               shellHook = ''
                 export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}:$LD_LIBRARY_PATH"
-                mkdir --verbose build
-                CC= CXX= cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DMBED_TARGET=LPC1768 \
-                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
+                CC= CXX= cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Debug \
+                  -DMBED_TARGET=LPC1768 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
               '';
             };
       });
