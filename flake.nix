@@ -60,12 +60,14 @@
                   cmake-format # CMake formatter
                   cmake-language-server # Cmake LSP
                   doxygen # Documentation generator
-                  lldb # Clang debug adapter
+                  # lldb # Clang debug adapter
                   mbed-cli
                   socat # Serial terminal for manual testing
                   valgrind # Debugging and profiling
                   # ARM Toolchain
                   gcc-arm-embedded
+                  gcovr
+                  gdb
                   # Python
                   python3
                   ruff # Fast lint and format
@@ -79,7 +81,7 @@
                   cmake # Modern build tool
                   cppcheck # C++ Static analysis
                   doctest # Testing framework
-                  llvm # For llvm-cov
+                  # llvm # For llvm-cov
                   ninja # Modern build tool
                   pkg-config # Build tool
                 ]
