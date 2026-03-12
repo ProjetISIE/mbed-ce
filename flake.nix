@@ -12,9 +12,8 @@
         "x86_64-linux" # "aarch64-linux"
         "aarch64-darwin"
       ];
-      forAllSystems =
-        f: nixpkgs.lib.genAttrs localSystems (system: f (import nixpkgs { inherit system; }));
-      forAllSystemsWithCross =
+      forSystems = f: nixpkgs.lib.genAttrs localSystems (system: f (import nixpkgs { inherit system; }));
+      forSystemsCross =
         f:
         let
           crossSystem = "aarch64-linux";
@@ -45,7 +44,7 @@
       #     };
       #   }
       # );
-      devShells = forAllSystems (pkgs: {
+      devShells = forSystems (pkgs: {
         default =
           pkgs.mkShell.override
             {
@@ -69,7 +68,8 @@
               # Export compile commands JSON for LSP and other tools
               shellHook = ''
                 mkdir --verbose build
-                cmake -DCMAKE_BUILD_TYPE=Debug -DCOVERAGE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -GNinja -S . -B build
+                cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DMBED_TARGET=LPC1768 \
+                  -DCOVERAGE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
               '';
             };
       });
