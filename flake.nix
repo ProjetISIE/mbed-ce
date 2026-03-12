@@ -64,6 +64,8 @@
                   mbed-cli
                   socat # Serial terminal for manual testing
                   valgrind # Debugging and profiling
+                  # ARM Toolchain
+                  gcc-arm-embedded
                   # Python
                   python3
                   ruff # Fast lint and format
@@ -92,7 +94,7 @@
               shellHook = ''
                 export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}:$LD_LIBRARY_PATH"
                 mkdir --verbose build
-                cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DMBED_TARGET=LPC1768 \
+                CC= CXX= cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DMBED_TARGET=LPC1768 \
                   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
               '';
             };
