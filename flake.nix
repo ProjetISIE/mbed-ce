@@ -51,45 +51,43 @@
               stdenv = pkgs.clangStdenv; # Clang instead of GCC
             }
             {
-              packages =
-                with pkgs;
-                [
-                  bashInteractive
-                  clang-tools # Clang CLIs, including LSP
-                  clang-uml # UML diagram generator
-                  cmake-format # CMake formatter
-                  cmake-language-server # Cmake LSP
-                  doxygen # Documentation generator
-                  # lldb # Clang debug adapter
-                  mbed-cli
-                  socat # Serial terminal for manual testing
-                  valgrind # Debugging and profiling
-                  # ARM Toolchain
-                  gcc-arm-embedded
-                  gcovr
-                  gdb
-                  # Python
-                  python3
-                  ruff # Fast lint and format
-                  ty # Type checker and LSP
-                  uv # Fast packages and environment manager
-                  # Web + Misc
-                  vscode-langservers-extracted # HTML/CSS/JS(ON)
-                  taplo # TOML LSP
-                  yaml-language-server # YAML LSP
-                  # nativeBuildInputs TODO Use those from pkg.nix when done
-                  cmake # Modern build tool
-                  cppcheck # C++ Static analysis
-                  doctest # Testing framework
-                  # llvm # For llvm-cov
-                  ninja # Modern build tool
-                  pkg-config # Build tool
-                ]
-                ++ (with pkgs.python3Packages; [
-                  rope # Smart refactoring
-                  python-lsp-server # Python LSP
-                  pylsp-rope # Rope LSP
-                ]);
+              packages = with pkgs; [
+                bashInteractive
+                clang-tools # Clang CLIs, including LSP
+                # clang-uml # UML diagram generator
+                cmake-format # CMake formatter
+                cmake-language-server # Cmake LSP
+                # doxygen # Documentation generator
+                # lldb # Clang debug adapter
+                mbed-cli
+                # socat # Serial terminal for manual testing
+                # valgrind # Debugging and profiling
+                # ARM Toolchain
+                gcc-arm-embedded
+                gcovr
+                gdb
+                # Python
+                python3 # Python
+                # ruff # Fast lint and format
+                # ty # Type checker and LSP
+                # uv # Fast packages and environment manager
+                # Web + Misc
+                # vscode-langservers-extracted # HTML/CSS/JS(ON)
+                taplo # TOML LSP
+                yaml-language-server # YAML LSP
+                # nativeBuildInputs TODO Use those from pkg.nix when done
+                cmake # Modern build tool
+                cppcheck # C++ Static analysis
+                doctest # Testing framework
+                # llvm # For llvm-cov
+                ninja # Modern build tool
+                pkg-config # Build tool
+              ];
+              # ++ (with pkgs.python3Packages; [
+              #   rope # Smart refactoring
+              #   python-lsp-server # Python LSP
+              #   pylsp-rope # Rope LSP
+              # ]);
               # nativeBuildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.nativeBuildInputs;
               # buildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.buildInputs;
               # Export compile commands JSON for LSP and other tools
