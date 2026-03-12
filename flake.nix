@@ -73,7 +73,7 @@
                   vscode-langservers-extracted # HTML/CSS/JS(ON)
                   taplo # TOML LSP
                   yaml-language-server # YAML LSP
-                  # nativeBuildInputs
+                  # nativeBuildInputs TODO Use those from pkg.nix when done
                   cmake # Modern build tool
                   cppcheck # C++ Static analysis
                   doctest # Testing framework
@@ -90,9 +90,10 @@
               # buildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.buildInputs;
               # Export compile commands JSON for LSP and other tools
               shellHook = ''
+                export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}:$LD_LIBRARY_PATH"
                 mkdir --verbose build
                 cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DMBED_TARGET=LPC1768 \
-                  -DCOVERAGE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
+                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
               '';
             };
       });

@@ -16,6 +16,7 @@ find_package(doctest REQUIRED) # Testing framework
 add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror)
 
 set(MBED_APP_JSON_PATH mbed_app.json5)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
 include(mbed_project_setup)
 
