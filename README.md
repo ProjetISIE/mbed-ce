@@ -2,9 +2,41 @@
 lang: fr
 ---
 
-# Modèle d’Environnement de Développement MBED OS
+# Synthétiseur depuis Température et Humidité
 
-Développement pour le RTOS MBED-CE.
+Projet de synthétiseur modulant le son basé sur les températures et humidités
+mesurées par deux capteurs, sur RTOS MBED-CE.
+
+| Must                                                               |
+| ------------------------------------------------------------------ |
+| Captage de deux températures distinctes                            |
+| Définition de la température ambiante (état de repos) au démarrage |
+| Génération audio à partir des températures                         |
+
+| Should                                                                   |
+| ------------------------------------------------------------------------ |
+| Captage de deux humidités                                                |
+| Prise en compte des humidités dans la synthèse audio                     |
+| Assignation aléatoire des inputs aux paramètres de synthèse au démarrage |
+
+| Could                                                                      |
+| -------------------------------------------------------------------------- |
+| Produire une vingtaine de prototypes, donner concert au palais des congrès |
+
+| Won’t                                      |
+| ------------------------------------------ |
+| Permettre de jouer un morceau précis       |
+| Permettre de jouer deux fois la même chose |
+| Fonctionner de manière prédictible         |
+
+Deux capteurs de température tels que
+`Grove - Temperature - Humidity Sensor (High-Accuracy Mini) v1.0` ou
+`SparkFun Humidity and Temperature Sensor Breakout - HIH6130`.
+
+Ampli et haut-parleur tel que
+`Adafruit Mono 2.5W Class D Audio Amplifier - PAM8302` ou `Grove - Speaker`
+
+Kit de dev compatible MBED type `NUCLEO-L073RZ` ou `LPC1768`.
 
 ## Outillage
 
