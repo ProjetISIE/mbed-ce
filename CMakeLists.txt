@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.19)
 cmake_policy(VERSION 3.19...3.22)
 
+# Set up Mbed target and toolchain before project()
+set(MBED_TARGET LPC1768 CACHE STRING "Mbed target name")
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_CROSSCOMPILING TRUE)
+set(MBED_CREATE_PYTHON_VENV FALSE CACHE BOOL "Whether to create a python venv for mbed tools")
+
 set(MBED_APP_JSON_PATH mbed_app.json5)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/mbed-os/tools/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/mbed-os/tools/cmake/upload_methods)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
+include(mbed_toolchain_setup)
 
 project(
   mbedCeSynth
@@ -22,6 +30,7 @@ set(CMAKE_C_EXTENSIONS ON)
 
 find_package(doctest REQUIRED)
 include(mbed_project_setup)
+include(UploadMethodManager)
 add_subdirectory(mbed-os)
 add_executable(${PROJECT_NAME} main.cpp)
 
