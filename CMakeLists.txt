@@ -3,7 +3,7 @@ cmake_policy(VERSION 3.19...3.22)
 
 set(MBED_APP_JSON_PATH mbed_app.json5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-# include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
+include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
 
 project(
   mbedCeSynth
@@ -20,7 +20,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
-find_package(doctest REQUIRED) # Testing framework
+find_package(doctest REQUIRED)
 include(mbed_project_setup)
 add_subdirectory(mbed-os)
 add_executable(${PROJECT_NAME} main.cpp)
