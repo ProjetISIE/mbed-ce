@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.19)
 cmake_policy(VERSION 3.19...3.22)
 
-# Mbed CE Toolchain Setup (MUST be before project())
 set(MBED_APP_JSON_PATH mbed_app.json5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
+# include(mbed-os/tools/cmake/mbed_toolchain_setup.cmake)
 
 project(
-  project
+  mbedCeSynth
   VERSION 0.1.0
   LANGUAGES C CXX ASM)
 
@@ -26,7 +25,6 @@ include(mbed_project_setup)
 add_subdirectory(mbed-os)
 add_executable(${PROJECT_NAME} main.cpp)
 
-# -Wno-error for shadowing and conversion because Mbed's headers trigger these
 target_compile_options(${PROJECT_NAME} PRIVATE 
     -Wall -Wextra -Wpedantic -Werror
     -Wshadow -Wno-error=shadow
