@@ -29,14 +29,14 @@ mesurées par deux capteurs, sur RTOS MBED-CE.
 | Permettre de jouer deux fois la même chose |
 | Fonctionner de manière prédictible         |
 
-Deux capteurs de température tels que
-`Grove - Temperature - Humidity Sensor (High-Accuracy Mini) v1.0` ou
-`SparkFun Humidity and Temperature Sensor Breakout - HIH6130`.
+## Matériel
 
-Ampli et haut-parleur tel que
-`Adafruit Mono 2.5W Class D Audio Amplifier - PAM8302` ou `Grove - Speaker`
-
-Kit de dev compatible MBED type `NUCLEO-L073RZ` ou `LPC1768`.
+| Fonction                       | Composant                                  |
+| ------------------------------ | ------------------------------------------ |
+| Captage température & humidité | [Grove temperature & humidity sensor v1.0] |
+| Captage température & humidité | [Adafruit BME280 I2C or SPI]               |
+| Amplification & émission son   | [Adafruit PAM8302 Amplifier]               |
+| Traitements numériques         | [Kit MBED NXP LPC1768]                     |
 
 ## Outillage
 
@@ -72,6 +72,8 @@ depuis un environnement [Nix] activé.
 > threads correspondant au nombre de cœurs de processeur avec `-jN`, par exemple
 > `cmake --build build -j4` pour quatre cœurs.
 
+[Adafruit PAM8302 Amplifier]: https://www.adafruit.com/product/2130
+[Adafruit BME280 I2C or SPI]: https://www.adafruit.com/product/2652
 [cmake]: https://cmake.org
 [clang]: https://clang.llvm.org
 [clangd]: https://clangd.llvm.org
@@ -86,7 +88,9 @@ depuis un environnement [Nix] activé.
 [gcov]: https://gcc.gnu.org/onlinedocs/gcc/Gcov.html
 [gdb]: https://www.gnu.org/software/gdb
 [git]: https://git-scm.com
+[Grove temperature & humidity sensor v1.0]: https://wiki.seeedstudio.com/Grove-TemptureAndHumidity_Sensor-High-Accuracy_AndMini-v1.0
 [helix]: https://helix-editor.com
+[Kit MBED NXP LPC1768]: https://os.mbed.com/platforms/mbed-LPC1768
 [lcov]: https://github.com/linux-test-project/lcov
 [lldb]: https://lldb.llvm.org
 [llvm-cov]: https://llvm.org/docs/CommandGuide/llvm-cov.html
