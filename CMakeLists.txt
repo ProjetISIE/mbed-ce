@@ -32,7 +32,7 @@ find_package(doctest REQUIRED)
 include(mbed_project_setup)
 include(UploadMethodManager)
 add_subdirectory(mbed-os)
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp Synth.cpp Sensors.cpp)
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
     -Wall -Wextra -Wpedantic -Werror
