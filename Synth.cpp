@@ -1,5 +1,4 @@
 #include "Synth.hpp"
-#include <cmath>
 
 Synth::Synth(PinName out_pin)
     : _audio_out(out_pin), _phase(0.0f), _mod_phase(0.0f), _amplitude(0.0f),

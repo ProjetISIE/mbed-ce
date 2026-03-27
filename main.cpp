@@ -1,64 +1,110 @@
-#include "Sensors.hpp"
+#include "BME280Sensor.hpp"
 #include "Synth.hpp"
+#include "TH02Sensor.hpp"
 #include "mbed.h"
 #include <cmath>
 
-// PINs Definitions (LPC1768)
+// Pin definitions for LPC1768
 #define SYNTH_I2C_SDA p9
 #define SYNTH_I2C_SCL p10
 #define AUDIO_OUT p18
 
 int main() {
-  printf("Temperature & Humidity Synth starting\n");
-  Synth synth(AUDIO_OUT);
-  Sensors sensors(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
-  if (!sensors.init())
-    printf("Warning: Some sensors failed to initialize\n");
+  printf("Temperature & Humidity Synth starting...\n");
 
-  float base_temp = 20.0f; // Default room temp
-  float base_hum = 40.0f;  // Default humidity
-  printf("Calibrating baseline, DON’T TOUCH\n");
+  I2C i2c(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
+  i2c.frequency(100000);
+
+  TH02Sensor th02(i2c);
+  BME280Sensor bme(i2c);
+
+  bool th02_ok = th02.init();
+  bool bme_ok = bme.init();
+
+  if (!th02_ok)
+    printf("Warning: TH02 initialization failed\n");
+  if (!bme_ok)
+    printf("Warning: BME280 initialization failed\n");
+
+  Synth synth(AUDIO_OUT);
+
+  // Calibration at boot
+  float base_temp = 20.0f;
+  float base_hum = 40.0f;
+  printf("Calibrating baseline... Keep it steady.\n");
+
   for (int i = 0; i < 5; i++) {
-    float t, h;
-    sensors.get_average_temp_and_humidity(t, h);
-    if (t > -50.0f && t != 0.0f) {
-      base_temp = t;
-      base_hum = h;
-      printf("  Reading %d: %.2f C, %.2f %% (OK)\n", i + 1, t, h);
-    } else
-      printf("  Reading %d: %.2f C, %.2f %% (NOK, using %.2f C)\n", i + 1, t, h,
-             base_temp);
+    float t_th02, h_th02, t_bme, h_bme;
+    bool r_th02 = th02.read(t_th02, h_th02);
+    bool r_bme = bme.read(t_bme, h_bme);
+
+    if (r_th02) {
+      base_temp = t_th02;
+      base_hum = h_th02;
+      printf("  [TH02] Reading %d: %.2f C, %.2f %%\n", i + 1, t_th02, h_th02);
+    } else if (r_bme) {
+      base_temp = t_bme;
+      base_hum = h_bme;
+      printf("  [BME280] Reading %d: %.2f C, %.2f %%\n", i + 1, t_bme, h_bme);
+    } else {
+      printf("  Reading %d: FAILED\n", i + 1);
+    }
     thread_sleep_for(200);
   }
-
   printf("Baseline Final: Temp = %.2f C, Hum = %.2f %%\n", base_temp, base_hum);
+
   synth.start();
-  synth.set_amplitude(0.0f); // Silent at start
+  synth.set_amplitude(0.0f);
 
   while (true) {
-    float current_temp, current_hum;
-    sensors.get_average_temp_and_humidity(current_temp, current_hum);
-    // freq = 110 * 2^(0.5 * (current_temp - (base_temp + threshold)))
+    float t_th02, h_th02, t_bme, h_bme;
+    bool r_th02 = th02.read(t_th02, h_th02);
+    bool r_bme = bme.read(t_bme, h_bme);
+
+    float current_temp = base_temp;
+    float current_hum = base_hum;
+
+    if (r_th02) {
+      current_temp = t_th02;
+      current_hum = h_th02;
+      printf("TH02: %.2f C, %.2f %% | ", t_th02, h_th02);
+    } else {
+      printf("TH02: ERR | ");
+    }
+
+    if (r_bme) {
+      printf("BME280: %.2f C, %.2f %%", t_bme, h_bme);
+      // If TH02 failed, use BME280 for synth
+      if (!r_th02) {
+        current_temp = t_bme;
+        current_hum = h_bme;
+      }
+    } else {
+      printf("BME280: ERR");
+    }
+    printf("\n");
+
+    // Frequency control:
     float temp_diff = current_temp - base_temp;
-    float threshold = 0.5f; // Threshold to start producing sound
+    float threshold = 0.5f;
+
     if (temp_diff > threshold) {
       float octave_shift = 0.5f * (temp_diff - threshold);
       float freq = 110.0f * std::pow(2.0f, octave_shift);
       synth.set_frequency(freq);
-      // Amplitude control from humidity:
+
       float hum_diff = current_hum - base_hum;
       float amp = 0.5f + (hum_diff / 50.0f);
       synth.set_amplitude(amp);
-      // Modulation rate (LFO) also from humidity:
-      // Let's say 1Hz at base, increases with humidity
+
       float mod_rate = 1.0f + (hum_diff / 10.0f);
       if (mod_rate < 0.1f)
         mod_rate = 0.1f;
       synth.set_mod_rate(mod_rate);
-    } else
+    } else {
       synth.set_amplitude(0.0f);
-    printf("Temp: %.2f C (Base: %.2f), Hum: %.2f %% (Base: %.2f)\n",
-           current_temp, base_temp, current_hum, base_hum);
-    thread_sleep_for(100); // 10Hz
+    }
+
+    thread_sleep_for(200);
   }
 }
