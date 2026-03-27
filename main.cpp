@@ -4,8 +4,8 @@
 #include <cmath>
 
 // Pin definitions for LPC1768
-#define SYNTH_I2C_SDA p28
-#define SYNTH_I2C_SCL p27
+#define SYNTH_I2C_SDA p9
+#define SYNTH_I2C_SCL p10
 #define AUDIO_OUT p18
 
 int main() {
