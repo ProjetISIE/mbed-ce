@@ -13,7 +13,7 @@ public:
 private:
   I2C _i2c;
   static constexpr int SHT31_ADDR = 0x40 << 1;
-  static constexpr int BME280_ADDR = 0x76 << 1;
+  static constexpr int BME280_ADDR = 0x77 << 1;
 
   bool init_sht31();
   bool init_bme280();
