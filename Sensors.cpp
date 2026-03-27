@@ -79,7 +79,90 @@ bool Sensors::init_bme280() {
 }
 
 bool Sensors::read_sht31(float &temp, float &hum) {
-  char cmd[2] = {0x24, 0x00}; // High repeatability, clock stretching disabled
+  // If address is 0x40, it's likely a TH02 (Grove Temperature & Humidity
+  // Sensor)
+  if (SHT31_ADDR == (0x40 << 1)) {
+    char cmd[2];
+    char data[3];
+
+    // 1. Measure Temperature
+    cmd[0] = 0x03; // REG_CONFIG
+    cmd[1] = 0x11; // CMD_MEASURE_TEMP
+    if (_i2c.write(SHT31_ADDR, cmd, 2) != 0)
+      return false;
+
+    // Wait for ready
+    bool ready = false;
+    for (int i = 0; i < 20; i++) {
+      thread_sleep_for(20); // 20ms * 20 = 400ms max
+      cmd[0] = 0x00;        // REG_STATUS
+      if (_i2c.write(SHT31_ADDR, cmd, 1) != 0)
+        break;
+      if (_i2c.read(SHT31_ADDR, data, 1) != 0)
+        break;
+      if (!(data[0] & 0x01)) { // STATUS_RDY_MASK is 0 when ready
+        ready = true;
+        break;
+      }
+    }
+    if (!ready) {
+      printf("TH02 Temp Timeout\n");
+      return false;
+    }
+
+    // Read Temp Data (Library reads 3 bytes and takes the last two)
+    cmd[0] = 0x01; // REG_DATA_H
+    if (_i2c.write(SHT31_ADDR, cmd, 1) != 0)
+      return false;
+    if (_i2c.read(SHT31_ADDR, data, 3) != 0)
+      return false;
+    // The library uses (data[num-2] << 8) | data[num-1]
+    uint16_t temp_raw = (data[1] << 8) | data[2];
+    temp = (float)(temp_raw >> 2) / 32.0f - 50.0f;
+
+    // 2. Measure Humidity
+    cmd[0] = 0x03; // REG_CONFIG
+    cmd[1] = 0x01; // CMD_MEASURE_HUMI
+    if (_i2c.write(SHT31_ADDR, cmd, 2) != 0)
+      return false;
+
+    // Wait for ready
+    ready = false;
+    for (int i = 0; i < 20; i++) {
+      thread_sleep_for(20);
+      cmd[0] = 0x00; // REG_STATUS
+      if (_i2c.write(SHT31_ADDR, cmd, 1) != 0)
+        break;
+      if (_i2c.read(SHT31_ADDR, data, 1) != 0)
+        break;
+      if (!(data[0] & 0x01)) {
+        ready = true;
+        break;
+      }
+    }
+    if (!ready) {
+      printf("TH02 Humi Timeout\n");
+      return false;
+    }
+
+    // Read Humi Data
+    cmd[0] = 0x01; // REG_DATA_H
+    if (_i2c.write(SHT31_ADDR, cmd, 1) != 0)
+      return false;
+    if (_i2c.read(SHT31_ADDR, data, 3) != 0)
+      return false;
+    uint16_t humi_raw = (data[1] << 8) | data[2];
+    hum = (float)(humi_raw >> 4) / 16.0f - 24.0f;
+
+    printf(
+        "TH02 Raw: 0x%02x%02x%02x -> T=0x%04X, H=0x%04X -> %.2f C, %.2f %%\n",
+        data[0], data[1], data[2], temp_raw, humi_raw, temp, hum);
+
+    return true;
+  }
+
+  // Original SHT31 protocol for 0x44
+  char cmd[2] = {0x24, 0x00};
   if (_i2c.write(SHT31_ADDR, cmd, 2) != 0) {
     printf("SHT31 write command failed\n");
     return false;
