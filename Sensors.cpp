@@ -5,6 +5,18 @@ Sensors::Sensors(PinName sda, PinName scl) : _i2c(sda, scl) {
 }
 
 bool Sensors::init() {
+  printf("Scanning I2C bus (p9/p10)...\n");
+  int count = 0;
+  for (int address = 1; address < 127; address++) {
+    if (_i2c.write(address << 1, NULL, 0) == 0) {
+      printf("  Found device at 0x%02X\n", address);
+      count++;
+    }
+  }
+  if (count == 0) {
+    printf("  No I2C devices found! Check wiring and pull-ups.\n");
+  }
+
   bool ok = true;
   if (!init_sht31()) {
     printf("SHT31 initialization failed\n");
@@ -68,13 +80,21 @@ bool Sensors::init_bme280() {
 
 bool Sensors::read_sht31(float &temp, float &hum) {
   char cmd[2] = {0x24, 0x00}; // High repeatability, clock stretching disabled
-  if (_i2c.write(SHT31_ADDR, cmd, 2) != 0)
+  if (_i2c.write(SHT31_ADDR, cmd, 2) != 0) {
+    printf("SHT31 write command failed\n");
     return false;
+  }
   thread_sleep_for(20);
 
-  char data[6];
-  if (_i2c.read(SHT31_ADDR, data, 6) != 0)
+  char data[6] = {0};
+  int ret = _i2c.read(SHT31_ADDR, data, 6);
+  if (ret != 0) {
+    printf("SHT31 read data failed (ret %d)\n", ret);
     return false;
+  }
+
+  printf("SHT31 raw: %02x %02x %02x %02x %02x %02x\n", data[0], data[1],
+         data[2], data[3], data[4], data[5]);
 
   uint16_t st = (data[0] << 8) | data[1];
   uint16_t srh = (data[3] << 8) | data[4];

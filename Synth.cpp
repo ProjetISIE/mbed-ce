@@ -29,7 +29,7 @@ void Synth::set_mod_rate(float rate) {
 
 void Synth::sample_tick() {
   if (_amplitude <= 0.0f) {
-    _audio_out.write(0.5f); // Center bias
+    _audio_out.write_isr(0.5f); // Center bias
     return;
   }
 
@@ -41,11 +41,25 @@ void Synth::sample_tick() {
   if (_mod_phase >= 2.0f * PI)
     _mod_phase -= 2.0f * PI;
 
+  // Faster sine approximation for ISR
+  auto fast_sin = [](float x) {
+    // Normalise x to [-PI, PI]
+    if (x > PI)
+      x -= 2.0f * PI;
+
+    float sin;
+    if (x < 0)
+      sin = 1.27323954f * x + 0.405284735f * x * x;
+    else
+      sin = 1.27323954f * x - 0.405284735f * x * x;
+    return sin;
+  };
+
   // Amplitude modulation with LFO
-  float mod = 0.7f + 0.3f * std::sin(_mod_phase);
+  float mod = 0.7f + 0.3f * fast_sin(_mod_phase);
   float current_amp = _amplitude * mod;
 
   // Sine wave shifted from [-1, 1] to [0, 1] for DAC
-  float sample = 0.5f + 0.5f * current_amp * std::sin(_phase);
-  _audio_out.write(sample);
+  float sample = 0.5f + 0.5f * current_amp * fast_sin(_phase);
+  _audio_out.write_isr(sample);
 }

@@ -3,6 +3,15 @@
 
 #include "mbed.h"
 
+class AnalogOutISR : public AnalogOut {
+public:
+  AnalogOutISR(PinName pin) : AnalogOut(pin) {}
+  void write_isr(float value) {
+    // Direct call to HAL bypasses the AnalogOut::write() mutex
+    analogout_write(&_dac, value);
+  }
+};
+
 class Synth {
 public:
   Synth(PinName out_pin);
@@ -14,7 +23,7 @@ public:
 private:
   void sample_tick();
 
-  AnalogOut _audio_out;
+  AnalogOutISR _audio_out;
   Ticker _sample_ticker;
   float _phase;
   float _phase_increment;

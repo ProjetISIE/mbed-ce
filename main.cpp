@@ -19,16 +19,27 @@ int main() {
   }
 
   // Calibration at boot
-  float base_temp = 0.0f;
-  float base_hum = 0.0f;
+  float base_temp = 20.0f; // Default room temp
+  float base_hum = 40.0f;  // Default humidity
   printf("Calibrating baseline... Keep it steady.\n");
 
   // Take a few readings to stabilize
   for (int i = 0; i < 5; i++) {
-    sensors.get_average_temp_and_humidity(base_temp, base_hum);
+    float t, h;
+    sensors.get_average_temp_and_humidity(t, h);
+    // 0.0 is often a sign of a bad read or uninitialized sensor in this context
+    if (t > -50.0f && t != 0.0f) {
+      base_temp = t;
+      base_hum = h;
+      printf("  Reading %d: %.2f C, %.2f %% (OK)\n", i + 1, t, h);
+    } else {
+      printf("  Reading %d: %.2f C, %.2f %% (INVALID, using %.2f C)\n", i + 1,
+             t, h, base_temp);
+    }
     thread_sleep_for(200);
   }
-  printf("Baseline: Temp = %.2f C, Hum = %.2f %%\n", base_temp, base_hum);
+
+  printf("Baseline Final: Temp = %.2f C, Hum = %.2f %%\n", base_temp, base_hum);
 
   synth.start();
   synth.set_amplitude(0.0f); // Silent at start
