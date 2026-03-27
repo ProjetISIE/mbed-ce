@@ -36,9 +36,10 @@ add_executable(${PROJECT_NAME} main.cpp Synth.cpp Sensors.cpp)
 
 target_compile_options(${PROJECT_NAME} PRIVATE 
     -Wall -Wextra -Wpedantic -Werror
-    -Wshadow -Wno-error=shadow
-    -Wconversion -Wno-error=conversion
-    -Wfloat-conversion -Wno-error=float-conversion
+    # Too much warning because of mbed code we don’t control
+    # -Wshadow -Wno-error=shadow
+    # -Wconversion -Wno-error=conversion
+    # -Wfloat-conversion -Wno-error=float-conversion
 )
 target_link_libraries(${PROJECT_NAME} mbed-os)
 mbed_set_post_build(${PROJECT_NAME})
