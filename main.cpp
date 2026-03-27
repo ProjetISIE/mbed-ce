@@ -1,4 +1,5 @@
 #include "BME280Sensor.hpp"
+#include "PAM8302.hpp"
 #include "Synth.hpp"
 #include "TH02Sensor.hpp"
 #include "mbed.h"
@@ -8,6 +9,7 @@
 #define SYNTH_I2C_SDA p9
 #define SYNTH_I2C_SCL p10
 #define AUDIO_OUT p18
+#define AMPLIFIER_SD p26
 
 int main() {
   printf("Temperature & Humidity Synth starting...\n");
@@ -17,6 +19,7 @@ int main() {
 
   TH02Sensor th02(i2c);
   BME280Sensor bme(i2c);
+  PAM8302 amp(AMPLIFIER_SD);
 
   bool th02_ok = th02.init();
   bool bme_ok = bme.init();
@@ -27,6 +30,7 @@ int main() {
     printf("Warning: BME280 initialization failed\n");
 
   Synth synth(AUDIO_OUT);
+  amp.on();
 
   // Calibration at boot
   float base_temp = 20.0f;
@@ -64,23 +68,24 @@ int main() {
     float current_temp = base_temp;
     float current_hum = base_hum;
 
+    printf("TH02: ");
     if (r_th02) {
       current_temp = t_th02;
       current_hum = h_th02;
-      printf("TH02: %.2f C, %.2f %% | ", t_th02, h_th02);
+      printf("%.1f C, %.1f %% | ", t_th02, h_th02);
     } else {
-      printf("TH02: ERR | ");
+      printf("ERR | ");
     }
 
+    printf("BME280: ");
     if (r_bme) {
-      printf("BME280: %.2f C, %.2f %%", t_bme, h_bme);
-      // If TH02 failed, use BME280 for synth
+      printf("%.1f C, %.1f %%", t_bme, h_bme);
       if (!r_th02) {
         current_temp = t_bme;
         current_hum = h_bme;
       }
     } else {
-      printf("BME280: ERR");
+      printf("ERR");
     }
     printf("\n");
 
@@ -88,16 +93,20 @@ int main() {
     float temp_diff = current_temp - base_temp;
     float threshold = 0.5f;
 
+    float freq = 0.0f;
+    float amplitude = 0.0f;
+    float mod_rate = 0.0f;
+
     if (temp_diff > threshold) {
       float octave_shift = 0.5f * (temp_diff - threshold);
-      float freq = 110.0f * std::pow(2.0f, octave_shift);
+      freq = 110.0f * std::pow(2.0f, octave_shift);
       synth.set_frequency(freq);
 
       float hum_diff = current_hum - base_hum;
-      float amp = 0.5f + (hum_diff / 50.0f);
-      synth.set_amplitude(amp);
+      amplitude = 0.5f + (hum_diff / 50.0f);
+      synth.set_amplitude(amplitude);
 
-      float mod_rate = 1.0f + (hum_diff / 10.0f);
+      mod_rate = 1.0f + (hum_diff / 10.0f);
       if (mod_rate < 0.1f)
         mod_rate = 0.1f;
       synth.set_mod_rate(mod_rate);
@@ -105,6 +114,8 @@ int main() {
       synth.set_amplitude(0.0f);
     }
 
-    thread_sleep_for(200);
+    amp.log_status(freq, amplitude, mod_rate);
+
+    thread_sleep_for(500); // 2Hz updates
   }
 }

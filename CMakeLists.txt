@@ -36,7 +36,7 @@ include(mbed_project_setup)
 include(UploadMethodManager)
 add_subdirectory(mbed-os)
 add_executable(${PROJECT_NAME} main.cpp Synth.cpp TH02Sensor.cpp
-                               BME280Sensor.cpp)
+                               BME280Sensor.cpp PAM8302.cpp)
 
 target_compile_options(
   ${PROJECT_NAME}
