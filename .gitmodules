@@ -2,3 +2,6 @@
 	path = mbed-os
 	url = https://github.com/mbed-ce/mbed-os.git
 	shallow = true
+[submodule "Grove_Temper_Humidity"]
+	path = Grove_Temper_Humidity
+	url = https://github.com/Seeed-Studio/Grove_Temper_Humidity.git
