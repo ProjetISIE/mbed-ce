@@ -77,5 +77,8 @@ bool TH02Sensor::read(float &temp, float &hum) {
   uint16_t humi_raw = (data[1] << 8) | data[2];
   hum = (float)(humi_raw >> 4) / 16.0f - 24.0f;
 
+  if (temp == 0.0f && hum == 0.0f)
+    return false;
+
   return true;
 }

@@ -10,7 +10,8 @@ bool BME280Sensor::init() {
     return false;
   if (_i2c.read(ADDR, cmd, 1) != 0)
     return false;
-  if (cmd[0] != 0x60)
+  // BME280 is 0x60, BMP280 is 0x58
+  if (cmd[0] != 0x60 && cmd[0] != 0x58)
     return false;
 
   // Read compensation parameters
@@ -45,6 +46,7 @@ bool BME280Sensor::init() {
   cmd[1] = 0x27; // ctrl_meas
   _i2c.write(ADDR, cmd, 2);
 
+  thread_sleep_for(10); // Wait for first measurement
   return true;
 }
 
@@ -58,6 +60,9 @@ bool BME280Sensor::read(float &temp, float &hum) {
 
   int32_t adc_T = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4);
   int32_t adc_H = (data[6] << 8) | data[7];
+
+  if (adc_T == 0 || adc_H == 0)
+    return false;
 
   // Temperature compensation
   int32_t var1, var2;
@@ -93,6 +98,9 @@ bool BME280Sensor::read(float &temp, float &hum) {
   v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
   v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
   hum = (float)(v_x1_u32r >> 12) / 1024.0f;
+
+  if (temp == 0.0f && hum == 0.0f)
+    return false;
 
   return true;
 }

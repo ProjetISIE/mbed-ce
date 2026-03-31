@@ -29,12 +29,20 @@ int main() {
   float base_temp = 20.0f;
   float base_hum = 40.0f;
   bool baseline_found = false;
-  printf("Calibrating baselines, don’t touch\n");
+  printf(
+      "Calibrating baselines, don’t touch (Need at least one valid reading)\n");
 
   for (int i = 0; i < 5; i++) {
     float t_th02, h_th02, t_bme, h_bme;
-    bool r_th02 = th02.read(t_th02, h_th02);
-    bool r_bme = bme.read(t_bme, h_bme);
+    bool r_th02 = th02_ok && th02.read(t_th02, h_th02);
+    bool r_bme = bme_ok && bme.read(t_bme, h_bme);
+
+    // Reject all-zero readings as failures
+    if (r_th02 && (t_th02 == 0.0f && h_th02 == 0.0f))
+      r_th02 = false;
+    if (r_bme && (t_bme == 0.0f && h_bme == 0.0f))
+      r_bme = false;
+
     if (r_th02) {
       base_temp = t_th02;
       base_hum = h_th02;
@@ -45,8 +53,9 @@ int main() {
       base_hum = h_bme;
       baseline_found = true;
       printf("  [BME280] Reading %d: %.2f C, %.2f %%\n", i + 1, t_bme, h_bme);
-    } else
+    } else {
       printf("  Reading %d: FAILED\n", i + 1);
+    }
     thread_sleep_for(200);
   }
 
@@ -57,16 +66,21 @@ int main() {
     amp.on();
     synth.set_amplitude(0.0f);
   } else {
-    printf(
-        "WARN: No baseline found, waiting for data before starting audio.\n");
+    printf("WARN: No baseline found, waiting for valid data...\n");
   }
 
   bool synth_started = baseline_found;
 
   while (true) {
     float t_th02, h_th02, t_bme, h_bme;
-    bool r_th02 = th02.read(t_th02, h_th02);
-    bool r_bme = bme.read(t_bme, h_bme);
+    bool r_th02 = th02_ok && th02.read(t_th02, h_th02);
+    bool r_bme = bme_ok && bme.read(t_bme, h_bme);
+
+    if (r_th02 && (t_th02 == 0.0f && h_th02 == 0.0f))
+      r_th02 = false;
+    if (r_bme && (t_bme == 0.0f && h_bme == 0.0f))
+      r_bme = false;
+
     float current_temp = base_temp;
     float current_hum = base_hum;
     bool current_ok = r_th02 || r_bme;
@@ -79,8 +93,8 @@ int main() {
         base_temp = t_bme;
         base_hum = h_bme;
       }
-      printf("First reading successful! Starting audio with baseline: Temp = "
-             "%.2f C, Hum = %.2f %%\n",
+      printf("First valid reading! Starting audio with baseline: Temp = %.2f "
+             "C, Hum = %.2f %%\n",
              base_temp, base_hum);
       synth.start();
       amp.on();
@@ -94,8 +108,10 @@ int main() {
       current_temp = t_th02;
       current_hum = h_th02;
       printf("%.1f C, %.1f %% | ", t_th02, h_th02);
-    } else
+    } else {
       printf("ERR | ");
+    }
+
     printf("BME280: ");
     if (r_bme) {
       printf("%.1f C, %.1f %%", t_bme, h_bme);
@@ -103,8 +119,9 @@ int main() {
         current_temp = t_bme;
         current_hum = h_bme;
       }
-    } else
+    } else {
       printf("ERR");
+    }
     printf("\n");
 
     // Frequency control
@@ -125,8 +142,9 @@ int main() {
       if (mod_rate < 0.1f)
         mod_rate = 0.1f;
       synth.set_mod_rate(mod_rate);
-    } else if (synth_started)
+    } else if (synth_started) {
       synth.set_amplitude(0.0f);
+    }
 
     if (synth_started)
       amp.log_status(freq, amplitude, mod_rate);
