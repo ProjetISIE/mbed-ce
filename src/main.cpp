@@ -11,10 +11,27 @@
 #define AUD_OUT p18
 #define AMP_SD p15
 
+void recover_i2c_bus(PinName sda, PinName scl) {
+  printf("I2C Bus Recovery: Toggling SCL...\n");
+  DigitalInOut sda_pin(sda, PIN_INPUT, PullUp, 1);
+  DigitalOut scl_pin(scl, 1);
+  thread_sleep_for(10);
+
+  for (int i = 0; i < 10; i++) {
+    scl_pin = 0;
+    wait_us(5);
+    scl_pin = 1;
+    wait_us(5);
+  }
+  printf("I2C Bus Recovery: Done.\n");
+}
+
 int main() {
   printf("Temperature & Humidity Synth starting\n");
+  recover_i2c_bus(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
+
   I2C i2c(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
-  i2c.frequency(10000); // 10kHz for stability
+  i2c.frequency(100000); // Back to standard 100kHz
 
   printf("I2C Scanner: Scanning (skipping 0x00)...\n");
   int count = 0;
@@ -31,11 +48,11 @@ int main() {
   BME280Sensor bme(i2c);
   PAM8302 amp(AMP_SD);
 
-  thread_sleep_for(100);
+  thread_sleep_for(200);
   bool th02_ok = th02.init();
-  thread_sleep_for(100);
+  thread_sleep_for(200);
   bool bme_ok = bme.init();
-  thread_sleep_for(100);
+  thread_sleep_for(200);
 
   if (!th02_ok)
     printf("WARN: TH02 initialization failed\n");
@@ -53,12 +70,12 @@ int main() {
     float t_th02, h_th02, t_bme, h_bme;
     bool r_th02 = false;
     if (th02_ok) {
-      thread_sleep_for(50);
+      thread_sleep_for(100);
       r_th02 = th02.read(t_th02, h_th02);
     }
     bool r_bme = false;
     if (bme_ok) {
-      thread_sleep_for(50);
+      thread_sleep_for(100);
       r_bme = bme.read(t_bme, h_bme);
     }
 
@@ -81,7 +98,7 @@ int main() {
     } else {
       printf("  Reading %d: FAILED\n", i + 1);
     }
-    thread_sleep_for(200);
+    thread_sleep_for(500);
   }
 
   if (baseline_found) {
@@ -100,12 +117,12 @@ int main() {
     float t_th02, h_th02, t_bme, h_bme;
     bool r_th02 = false;
     if (th02_ok) {
-      thread_sleep_for(50);
+      thread_sleep_for(100);
       r_th02 = th02.read(t_th02, h_th02);
     }
     bool r_bme = false;
     if (bme_ok) {
-      thread_sleep_for(50);
+      thread_sleep_for(100);
       r_bme = bme.read(t_bme, h_bme);
     }
 
@@ -184,6 +201,6 @@ int main() {
     else
       printf("[System] Waiting for initial data...\n");
 
-    thread_sleep_for(500); // 2Hz updates
+    thread_sleep_for(1000); // 1Hz updates for stability
   }
 }

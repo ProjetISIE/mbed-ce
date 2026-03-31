@@ -10,6 +10,7 @@ bool TH02Sensor::init() {
   for (int i = 0; i < 3; i++) {
     r_wr = _i2c.write(ADDR, &cmd, 1);
     if (r_wr == 0) {
+      wait_us(1000); // Settling delay
       r_rd = _i2c.read(ADDR, &data, 1);
       if (r_rd == 0)
         break;
@@ -47,10 +48,13 @@ bool TH02Sensor::read(float &temp, float &hum) {
   for (int i = 0; i < 20; i++) {
     thread_sleep_for(20);
     cmd[0] = 0x00; // REG_STATUS
-    if (_i2c.write(ADDR, cmd, 1) == 0 && _i2c.read(ADDR, data, 1) == 0) {
-      if (!(data[0] & 0x01)) {
-        ready = true;
-        break;
+    if (_i2c.write(ADDR, cmd, 1) == 0) {
+      wait_us(1000);
+      if (_i2c.read(ADDR, data, 1) == 0) {
+        if (!(data[0] & 0x01)) {
+          ready = true;
+          break;
+        }
       }
     }
   }
@@ -60,10 +64,16 @@ bool TH02Sensor::read(float &temp, float &hum) {
   }
 
   cmd[0] = 0x01; // REG_DATA_H
-  if (_i2c.write(ADDR, cmd, 1) != 0 || _i2c.read(ADDR, data, 3) != 0) {
-    printf("[TH02] Read: Read data (temp) failed\n");
+  if (_i2c.write(ADDR, cmd, 1) == 0) {
+    wait_us(1000);
+    if (_i2c.read(ADDR, data, 3) != 0) {
+      printf("[TH02] Read: Read data (temp) failed\n");
+      return false;
+    }
+  } else {
     return false;
   }
+
   uint16_t temp_raw = (data[1] << 8) | data[2];
   temp = (float)(temp_raw >> 2) / 32.0f - 50.0f;
 
@@ -87,10 +97,13 @@ bool TH02Sensor::read(float &temp, float &hum) {
   for (int i = 0; i < 20; i++) {
     thread_sleep_for(20);
     cmd[0] = 0x00; // REG_STATUS
-    if (_i2c.write(ADDR, cmd, 1) == 0 && _i2c.read(ADDR, data, 1) == 0) {
-      if (!(data[0] & 0x01)) {
-        ready = true;
-        break;
+    if (_i2c.write(ADDR, cmd, 1) == 0) {
+      wait_us(1000);
+      if (_i2c.read(ADDR, data, 1) == 0) {
+        if (!(data[0] & 0x01)) {
+          ready = true;
+          break;
+        }
       }
     }
   }
@@ -100,10 +113,16 @@ bool TH02Sensor::read(float &temp, float &hum) {
   }
 
   cmd[0] = 0x01; // REG_DATA_H
-  if (_i2c.write(ADDR, cmd, 1) != 0 || _i2c.read(ADDR, data, 3) != 0) {
-    printf("[TH02] Read: Read data (hum) failed\n");
+  if (_i2c.write(ADDR, cmd, 1) == 0) {
+    wait_us(1000);
+    if (_i2c.read(ADDR, data, 3) != 0) {
+      printf("[TH02] Read: Read data (hum) failed\n");
+      return false;
+    }
+  } else {
     return false;
   }
+
   uint16_t humi_raw = (data[1] << 8) | data[2];
   hum = (float)(humi_raw >> 4) / 16.0f - 24.0f;
 
