@@ -6,14 +6,14 @@
 #include <cmath>
 
 // PINs Definitions (LPC1768)
-#define I2C_SDA p9
-#define I2C_SCL p10
+#define SYNTH_I2C_SDA p9
+#define SYNTH_I2C_SCL p10
 #define AUD_OUT p18
 #define AMP_SD p15
 
 int main() {
   printf("Temperature & Humidity Synth starting\n");
-  I2C i2c(I2C_SDA, I2C_SCL);
+  I2C i2c(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
   i2c.frequency(100000);
   TH02Sensor th02(i2c);
   BME280Sensor bme(i2c);

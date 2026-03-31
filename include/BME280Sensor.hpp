@@ -2,6 +2,8 @@
 #define BME280_SENSOR_HPP
 
 #include "Sensor.hpp"
+#include "mbed.h"
+#include <cstdint>
 
 class BME280Sensor : public Sensor {
 public:

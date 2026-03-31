@@ -2,6 +2,7 @@
 #define TH02_SENSOR_HPP
 
 #include "Sensor.hpp"
+#include "mbed.h"
 
 class TH02Sensor : public Sensor {
 public:
