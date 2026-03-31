@@ -26,9 +26,9 @@ int main() {
     printf("WARN: BME280 initialization failed\n");
 
   Synth synth(AUD_OUT);
-  amp.on();
   float base_temp = 20.0f;
   float base_hum = 40.0f;
+  bool baseline_found = false;
   printf("Calibrating baselines, don’t touch\n");
 
   for (int i = 0; i < 5; i++) {
@@ -38,19 +38,30 @@ int main() {
     if (r_th02) {
       base_temp = t_th02;
       base_hum = h_th02;
+      baseline_found = true;
       printf("  [TH02] Reading %d: %.2f C, %.2f %%\n", i + 1, t_th02, h_th02);
     } else if (r_bme) {
       base_temp = t_bme;
       base_hum = h_bme;
+      baseline_found = true;
       printf("  [BME280] Reading %d: %.2f C, %.2f %%\n", i + 1, t_bme, h_bme);
     } else
       printf("  Reading %d: FAILED\n", i + 1);
     thread_sleep_for(200);
   }
 
-  printf("Baseline Final: Temp = %.2f C, Hum = %.2f %%\n", base_temp, base_hum);
-  synth.start();
-  synth.set_amplitude(0.0f);
+  if (baseline_found) {
+    printf("Baseline Final: Temp = %.2f C, Hum = %.2f %%\n", base_temp,
+           base_hum);
+    synth.start();
+    amp.on();
+    synth.set_amplitude(0.0f);
+  } else {
+    printf(
+        "WARN: No baseline found, waiting for data before starting audio.\n");
+  }
+
+  bool synth_started = baseline_found;
 
   while (true) {
     float t_th02, h_th02, t_bme, h_bme;
@@ -58,6 +69,26 @@ int main() {
     bool r_bme = bme.read(t_bme, h_bme);
     float current_temp = base_temp;
     float current_hum = base_hum;
+    bool current_ok = r_th02 || r_bme;
+
+    if (!synth_started && current_ok) {
+      if (r_th02) {
+        base_temp = t_th02;
+        base_hum = h_th02;
+      } else {
+        base_temp = t_bme;
+        base_hum = h_bme;
+      }
+      printf("First reading successful! Starting audio with baseline: Temp = "
+             "%.2f C, Hum = %.2f %%\n",
+             base_temp, base_hum);
+      synth.start();
+      amp.on();
+      synth_started = true;
+      current_temp = base_temp;
+      current_hum = base_hum;
+    }
+
     printf("TH02: ");
     if (r_th02) {
       current_temp = t_th02;
@@ -83,7 +114,7 @@ int main() {
     float amplitude = 0.0f;
     float mod_rate = 0.0f;
 
-    if (temp_diff > threshold) {
+    if (synth_started && temp_diff > threshold) {
       float octave_shift = 0.5f * (temp_diff - threshold);
       freq = 110.0f * std::pow(2.0f, octave_shift);
       synth.set_frequency(freq);
@@ -94,10 +125,14 @@ int main() {
       if (mod_rate < 0.1f)
         mod_rate = 0.1f;
       synth.set_mod_rate(mod_rate);
-    } else
+    } else if (synth_started)
       synth.set_amplitude(0.0f);
 
-    amp.log_status(freq, amplitude, mod_rate);
+    if (synth_started)
+      amp.log_status(freq, amplitude, mod_rate);
+    else
+      printf("[System] Waiting for initial data...\n");
+
     thread_sleep_for(500); // 2Hz updates
   }
 }

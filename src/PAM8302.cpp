@@ -1,8 +1,8 @@
 #include "PAM8302.hpp"
 
-PAM8302::PAM8302(PinName sd_pin) : _sd_pin(sd_pin, 1), _is_on(true) {
+PAM8302::PAM8302(PinName sd_pin) : _sd_pin(sd_pin, 0), _is_on(false) {
   // PAM8302 SD (Shutdown) pin is active Low (pull Low to shutdown)
-  // We initialize it to High (1) to be On by default.
+  // We initialize it to Low (0) to be Off by default.
 }
 
 void PAM8302::on() {
