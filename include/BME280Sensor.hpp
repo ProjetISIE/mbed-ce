@@ -14,7 +14,7 @@ public:
 
 private:
   I2C &_i2c;
-  static constexpr int ADDR = 0x76 << 1;
+  static constexpr int ADDR = 0x77 << 1;
 
   struct BME280_Comp {
     uint16_t dig_T1;
