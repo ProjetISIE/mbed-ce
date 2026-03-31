@@ -19,7 +19,7 @@ void PAM8302::log_status(float freq, float amp, float mod_rate) {
   if (!_is_on || amp <= 0.0f) {
     printf("[Amplifier] Status: Silent\n");
   } else {
-    printf("[Amplifier] Status: Freq=%.1f Hz, Amp=%.2f, Mod=%.1f Hz\n", freq,
-           amp, mod_rate);
+    printf("[Amplifier] Status: Freq=%.1f Hz, Amp=%.0f %%, Mod=%.1f Hz\n", freq,
+           amp * 100.0f, mod_rate);
   }
 }

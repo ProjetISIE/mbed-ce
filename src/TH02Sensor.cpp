@@ -3,16 +3,23 @@
 TH02Sensor::TH02Sensor(I2C &i2c) : _i2c(i2c) {}
 
 bool TH02Sensor::init() {
-  // TH02 usually doesn't need specific init beyond basic check
   char cmd = 0x11; // REG_ID
   char data = 0;
-  int r_wr = _i2c.write(ADDR, &cmd, 1);
-  int r_rd = _i2c.read(ADDR, &data, 1);
+  int r_wr = 1, r_rd = 1;
+
+  for (int i = 0; i < 3; i++) {
+    r_wr = _i2c.write(ADDR, &cmd, 1);
+    if (r_wr == 0) {
+      r_rd = _i2c.read(ADDR, &data, 1);
+      if (r_rd == 0)
+        break;
+    }
+    thread_sleep_for(10);
+  }
+
   printf("[TH02] Init: write_ret=%d, read_ret=%d, ID=0x%02X\n", r_wr, r_rd,
          data);
-  if (r_wr != 0 || r_rd != 0)
-    return false;
-  return true;
+  return (r_wr == 0 && r_rd == 0);
 }
 
 bool TH02Sensor::read(float &temp, float &hum) {
@@ -22,8 +29,17 @@ bool TH02Sensor::read(float &temp, float &hum) {
   // Measure Temperature
   cmd[0] = 0x03; // REG_CONFIG
   cmd[1] = 0x11; // CMD_MEASURE_TEMP
-  if (_i2c.write(ADDR, cmd, 2) != 0) {
-    printf("[TH02] Read: Write config (temp) failed\n");
+
+  bool success = false;
+  for (int i = 0; i < 3; i++) {
+    if (_i2c.write(ADDR, cmd, 2) == 0) {
+      success = true;
+      break;
+    }
+    thread_sleep_for(10);
+  }
+  if (!success) {
+    printf("[TH02] Read: Write config (temp) failed after retries\n");
     return false;
   }
 
@@ -31,17 +47,15 @@ bool TH02Sensor::read(float &temp, float &hum) {
   for (int i = 0; i < 20; i++) {
     thread_sleep_for(20);
     cmd[0] = 0x00; // REG_STATUS
-    if (_i2c.write(ADDR, cmd, 1) != 0)
-      break;
-    if (_i2c.read(ADDR, data, 1) != 0)
-      break;
-    if (!(data[0] & 0x01)) {
-      ready = true;
-      break;
+    if (_i2c.write(ADDR, cmd, 1) == 0 && _i2c.read(ADDR, data, 1) == 0) {
+      if (!(data[0] & 0x01)) {
+        ready = true;
+        break;
+      }
     }
   }
   if (!ready) {
-    printf("[TH02] Read: Timeout or error waiting for temp ready\n");
+    printf("[TH02] Read: Timeout waiting for temp ready\n");
     return false;
   }
 
@@ -56,8 +70,16 @@ bool TH02Sensor::read(float &temp, float &hum) {
   // Measure Humidity
   cmd[0] = 0x03; // REG_CONFIG
   cmd[1] = 0x01; // CMD_MEASURE_HUMI
-  if (_i2c.write(ADDR, cmd, 2) != 0) {
-    printf("[TH02] Read: Write config (hum) failed\n");
+  success = false;
+  for (int i = 0; i < 3; i++) {
+    if (_i2c.write(ADDR, cmd, 2) == 0) {
+      success = true;
+      break;
+    }
+    thread_sleep_for(10);
+  }
+  if (!success) {
+    printf("[TH02] Read: Write config (hum) failed after retries\n");
     return false;
   }
 
@@ -65,17 +87,15 @@ bool TH02Sensor::read(float &temp, float &hum) {
   for (int i = 0; i < 20; i++) {
     thread_sleep_for(20);
     cmd[0] = 0x00; // REG_STATUS
-    if (_i2c.write(ADDR, cmd, 1) != 0)
-      break;
-    if (_i2c.read(ADDR, data, 1) != 0)
-      break;
-    if (!(data[0] & 0x01)) {
-      ready = true;
-      break;
+    if (_i2c.write(ADDR, cmd, 1) == 0 && _i2c.read(ADDR, data, 1) == 0) {
+      if (!(data[0] & 0x01)) {
+        ready = true;
+        break;
+      }
     }
   }
   if (!ready) {
-    printf("[TH02] Read: Timeout or error waiting for hum ready\n");
+    printf("[TH02] Read: Timeout waiting for hum ready\n");
     return false;
   }
 

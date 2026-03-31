@@ -14,11 +14,11 @@
 int main() {
   printf("Temperature & Humidity Synth starting\n");
   I2C i2c(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
-  i2c.frequency(100000);
+  i2c.frequency(10000); // 10kHz for stability
 
-  printf("I2C Scanner: Scanning...\n");
+  printf("I2C Scanner: Scanning (skipping 0x00)...\n");
   int count = 0;
-  for (int address = 0; address < 256; address += 2) {
+  for (int address = 2; address < 256; address += 2) {
     if (i2c.write(address, NULL, 0) == 0) {
       printf("  - Found device at 0x%02X (7-bit: 0x%02X)\n", address,
              address >> 1);
@@ -30,8 +30,13 @@ int main() {
   TH02Sensor th02(i2c);
   BME280Sensor bme(i2c);
   PAM8302 amp(AMP_SD);
+
+  thread_sleep_for(100);
   bool th02_ok = th02.init();
+  thread_sleep_for(100);
   bool bme_ok = bme.init();
+  thread_sleep_for(100);
+
   if (!th02_ok)
     printf("WARN: TH02 initialization failed\n");
   if (!bme_ok)
@@ -46,8 +51,16 @@ int main() {
 
   for (int i = 0; i < 5; i++) {
     float t_th02, h_th02, t_bme, h_bme;
-    bool r_th02 = th02_ok && th02.read(t_th02, h_th02);
-    bool r_bme = bme_ok && bme.read(t_bme, h_bme);
+    bool r_th02 = false;
+    if (th02_ok) {
+      thread_sleep_for(50);
+      r_th02 = th02.read(t_th02, h_th02);
+    }
+    bool r_bme = false;
+    if (bme_ok) {
+      thread_sleep_for(50);
+      r_bme = bme.read(t_bme, h_bme);
+    }
 
     // Reject all-zero readings as failures
     if (r_th02 && (t_th02 == 0.0f && h_th02 == 0.0f))
@@ -85,8 +98,16 @@ int main() {
 
   while (true) {
     float t_th02, h_th02, t_bme, h_bme;
-    bool r_th02 = th02_ok && th02.read(t_th02, h_th02);
-    bool r_bme = bme_ok && bme.read(t_bme, h_bme);
+    bool r_th02 = false;
+    if (th02_ok) {
+      thread_sleep_for(50);
+      r_th02 = th02.read(t_th02, h_th02);
+    }
+    bool r_bme = false;
+    if (bme_ok) {
+      thread_sleep_for(50);
+      r_bme = bme.read(t_bme, h_bme);
+    }
 
     if (r_th02 && (t_th02 == 0.0f && h_th02 == 0.0f))
       r_th02 = false;
@@ -143,7 +164,7 @@ int main() {
     float amplitude = 0.0f;
     float mod_rate = 0.0f;
 
-    if (synth_started && temp_diff > threshold) {
+    if (synth_started && current_ok && temp_diff > threshold) {
       float octave_shift = 0.5f * (temp_diff - threshold);
       freq = 110.0f * std::pow(2.0f, octave_shift);
       synth.set_frequency(freq);
