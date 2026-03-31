@@ -9,41 +9,12 @@
     { self, nixpkgs }:
     let
       localSystems = [
-        "x86_64-linux" # "aarch64-linux"
+        "x86_64-linux"
         "aarch64-darwin"
       ];
       forSystems = f: nixpkgs.lib.genAttrs localSystems (system: f (import nixpkgs { inherit system; }));
-      forSystemsCross =
-        f:
-        let
-          crossSystem = "aarch64-linux";
-        in
-        nixpkgs.lib.genAttrs localSystems (
-          localSystem:
-          f (import nixpkgs { inherit localSystem; }) (
-            import nixpkgs {
-              inherit localSystem;
-              inherit crossSystem;
-            }
-          )
-        );
     in
     {
-      # packages = forAllSystems (pkgs: {
-      #   default = pkgs.callPackage ./pkg.nix {
-      #     inherit self pkgs;
-      #     stdenv = pkgs.clangStdenv;
-      #   };
-      # });
-      # crossPackages = forAllSystemsWithCross (
-      #   pkgs: crossPkgs: {
-      #     default = crossPkgs.callPackage ./pkg.nix {
-      #       inherit self;
-      #       stdenv = crossPkgs.clangStdenv;
-      #       pkgs = crossPkgs;
-      #     };
-      #   }
-      # );
       devShells = forSystems (pkgs: {
         default =
           pkgs.mkShell.override
@@ -75,7 +46,7 @@
                 # vscode-langservers-extracted # HTML/CSS/JS(ON)
                 taplo # TOML LSP
                 yaml-language-server # YAML LSP
-                # nativeBuildInputs TODO Use those from pkg.nix when done
+                # Build inputs
                 cmake # Modern build tool
                 cppcheck # C++ Static analysis
                 doctest # Testing framework
@@ -83,17 +54,10 @@
                 ninja # Modern build tool
                 pkg-config # Build tool
               ];
-              # ++ (with pkgs.python3Packages; [
-              #   rope # Smart refactoring
-              #   python-lsp-server # Python LSP
-              #   pylsp-rope # Rope LSP
-              # ]);
-              # nativeBuildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.nativeBuildInputs;
-              # buildInputs = self.packages.${pkgs.stdenv.hostPlatform.system}.default.buildInputs;
               # Export compile commands JSON for LSP and other tools
               shellHook = ''
                 export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}:$LD_LIBRARY_PATH"
-                CC= CXX= cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Debug \
+                CC= CXX= cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Debug \
                   -DMBED_TARGET=LPC1768 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
               '';
             };

@@ -35,9 +35,9 @@ find_package(doctest REQUIRED)
 include(mbed_project_setup)
 include(UploadMethodManager)
 add_subdirectory(mbed-os)
-add_executable(${PROJECT_NAME} main.cpp Synth.cpp TH02Sensor.cpp
-                               BME280Sensor.cpp PAM8302.cpp)
-
+add_executable(${PROJECT_NAME} src/main.cpp src/Synth.cpp src/TH02Sensor.cpp
+                               src/BME280Sensor.cpp src/PAM8302.cpp)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_options(
   ${PROJECT_NAME}
   PRIVATE -Wall
