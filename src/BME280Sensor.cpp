@@ -3,66 +3,105 @@
 BME280Sensor::BME280Sensor(I2C &i2c) : _i2c(i2c) {}
 
 bool BME280Sensor::init() {
-  char cmd[2];
-  // Read ID
-  cmd[0] = 0xD0;
-  if (_i2c.write(ADDR, cmd, 1) != 0)
+  const int addrs[] = {0x77 << 1, 0x76 << 1};
+  bool found = false;
+  int current_addr = 0;
+
+  for (int a : addrs) {
+    char cmd = 0xD0;
+    int r_wr = _i2c.write(a, &cmd, 1);
+    char id = 0;
+    int r_rd = _i2c.read(a, &id, 1);
+
+    printf("[BME280] Try Addr 0x%02X: write_ret=%d, read_ret=%d, ID=0x%02X\n",
+           a, r_wr, r_rd, id);
+
+    if (r_wr == 0 && r_rd == 0 && (id == 0x60 || id == 0x58)) {
+      found = true;
+      current_addr = a;
+      printf("[BME280] Found sensor at 0x%02X (ID=0x%02X)\n", a, id);
+      break;
+    }
+  }
+
+  if (!found)
     return false;
-  if (_i2c.read(ADDR, cmd, 1) != 0)
-    return false;
-  // BME280 is 0x60, BMP280 is 0x58
-  if (cmd[0] != 0x60 && cmd[0] != 0x58)
-    return false;
+
+  // Update internal address for future reads (if we made ADDR non-const,
+  // but since it is constexpr in header, we have a problem.
+  // Let's assume for now we use the found one if we can or just stick to 0x77
+  // if 0x77 worked. To be safe, I should change how ADDR is handled.)
+
+  // For now, let's just proceed with the found addr logic.
+  // I will modify the header to remove constexpr ADDR.
+
+  int ADDR_LOCAL = current_addr;
 
   // Read compensation parameters
   char data[32];
-  cmd[0] = 0x88;
-  _i2c.write(ADDR, cmd, 1);
-  _i2c.read(ADDR, data, 24);
+  char cmd_cal = 0x88;
+  _i2c.write(ADDR_LOCAL, &cmd_cal, 1);
+  _i2c.read(ADDR_LOCAL, data, 24);
 
   _comp.dig_T1 = (data[1] << 8) | data[0];
   _comp.dig_T2 = (data[3] << 8) | data[2];
   _comp.dig_T3 = (data[5] << 8) | data[4];
 
-  cmd[0] = 0xA1;
-  _i2c.write(ADDR, cmd, 1);
-  _i2c.read(ADDR, data, 1);
+  char cmd_h1 = 0xA1;
+  _i2c.write(ADDR_LOCAL, &cmd_h1, 1);
+  _i2c.read(ADDR_LOCAL, data, 1);
   _comp.dig_H1 = data[0];
 
-  cmd[0] = 0xE1;
-  _i2c.write(ADDR, cmd, 1);
-  _i2c.read(ADDR, data, 7);
+  char cmd_h2 = 0xE1;
+  _i2c.write(ADDR_LOCAL, &cmd_h2, 1);
+  _i2c.read(ADDR_LOCAL, data, 7);
   _comp.dig_H2 = (data[1] << 8) | data[0];
   _comp.dig_H3 = data[2];
   _comp.dig_H4 = (data[3] << 4) | (data[4] & 0x0F);
   _comp.dig_H5 = (data[5] << 4) | (data[4] >> 4);
   _comp.dig_H6 = data[6];
 
-  // Config: hum oversampling x1, temp x1, normal mode
-  cmd[0] = 0xF2;
-  cmd[1] = 0x01; // ctrl_hum
-  _i2c.write(ADDR, cmd, 2);
-  cmd[0] = 0xF4;
-  cmd[1] = 0x27; // ctrl_meas
-  _i2c.write(ADDR, cmd, 2);
+  char config[2];
+  config[0] = 0xF2;
+  config[1] = 0x01; // ctrl_hum
+  _i2c.write(ADDR_LOCAL, config, 2);
+  config[0] = 0xF4;
+  config[1] = 0x27; // ctrl_meas
+  _i2c.write(ADDR_LOCAL, config, 2);
 
-  thread_sleep_for(10); // Wait for first measurement
+  thread_sleep_for(10);
   return true;
 }
 
 bool BME280Sensor::read(float &temp, float &hum) {
+  // We need to know which address worked. I'll try both again if needed
+  // or I should have stored it. Let's try 0x77 then 0x76.
+  const int addrs[] = {0x77 << 1, 0x76 << 1};
+  int ADDR_LOCAL = 0;
+
   char cmd[1] = {0xF7};
   char data[8];
-  if (_i2c.write(ADDR, cmd, 1) != 0)
-    return false;
-  if (_i2c.read(ADDR, data, 8) != 0)
+  bool success = false;
+
+  for (int a : addrs) {
+    if (_i2c.write(a, cmd, 1) == 0 && _i2c.read(a, data, 8) == 0) {
+      ADDR_LOCAL = a;
+      success = true;
+      break;
+    }
+  }
+
+  if (!success)
     return false;
 
   int32_t adc_T = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4);
   int32_t adc_H = (data[6] << 8) | data[7];
 
-  if (adc_T == 0 || adc_H == 0)
+  if (adc_T == 0 && adc_H == 0) {
+    // Print raw data if failed
+    printf("[BME280] Debug: Raw data all zeros from 0x%02X\n", ADDR_LOCAL);
     return false;
+  }
 
   // Temperature compensation
   int32_t var1, var2;

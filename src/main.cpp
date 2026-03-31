@@ -15,6 +15,18 @@ int main() {
   printf("Temperature & Humidity Synth starting\n");
   I2C i2c(SYNTH_I2C_SDA, SYNTH_I2C_SCL);
   i2c.frequency(100000);
+
+  printf("I2C Scanner: Scanning...\n");
+  int count = 0;
+  for (int address = 0; address < 256; address += 2) {
+    if (i2c.write(address, NULL, 0) == 0) {
+      printf("  - Found device at 0x%02X (7-bit: 0x%02X)\n", address,
+             address >> 1);
+      count++;
+    }
+  }
+  printf("I2C Scanner: Found %d devices.\n", count);
+
   TH02Sensor th02(i2c);
   BME280Sensor bme(i2c);
   PAM8302 amp(AMP_SD);
