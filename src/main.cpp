@@ -186,7 +186,19 @@ int main() {
       freq = 110.0f * std::pow(2.0f, octave_shift);
       synth.set_frequency(freq);
       float hum_diff = current_hum - base_hum;
-      amplitude = 0.5f + (hum_diff / 50.0f);
+      float hum_range = 100.0f - base_hum;
+      if (hum_range > 0.1f) {
+        amplitude = 0.5f + 0.5f * (hum_diff / hum_range);
+      } else {
+        amplitude = 1.0f;
+      }
+
+      // Clamp for consistent logging (Synth::set_amplitude also clamps)
+      if (amplitude < 0.0f)
+        amplitude = 0.0f;
+      if (amplitude > 1.0f)
+        amplitude = 1.0f;
+
       synth.set_amplitude(amplitude);
       mod_rate = 1.0f + (hum_diff / 10.0f);
       if (mod_rate < 0.1f)
