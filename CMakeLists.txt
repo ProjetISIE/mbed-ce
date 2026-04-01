@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.19)
 cmake_policy(VERSION 3.19...3.22)
 
+# Robust discovery of Git (useful in Nix/container environments)
+if(NOT GIT_EXECUTABLE OR NOT EXISTS "${GIT_EXECUTABLE}")
+  find_program(REAL_GIT_BIN NAMES git)
+  if(REAL_GIT_BIN)
+    set(GIT_EXECUTABLE
+        "${REAL_GIT_BIN}"
+        CACHE FILEPATH "Path to git" FORCE)
+  endif()
+endif()
+
 set(MBED_TARGET
     LPC1768
     CACHE STRING "Mbed target name")

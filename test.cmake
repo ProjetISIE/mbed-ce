@@ -1,0 +1,1 @@
+execute_process(COMMAND ls COMMAND_ERROR_IS_FATAL ANY)
