@@ -4,4 +4,5 @@ build/
 Grove_Temper_Humidity/
 Adafruit_BME280_Library/
 mbed-os/
+*.png
 

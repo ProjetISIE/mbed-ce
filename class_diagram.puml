@@ -1,0 +1,100 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 300
+left to right direction
+
+title Diagramme de Classes UML Synthétiseur Température/Humidité
+
+abstract class Sensor {
+    + {abstract} init() : bool
+    + {abstract} read(float &temp, float &hum) : bool
+    + {abstract} get_name() : const char*
+    + virtual ~Sensor()
+}
+note bottom of Sensor
+  "Contrat" pour tout capteur
+  - init() : Initialise le bus I2C et vérifie la présence
+  - read() : Remplit les références avec les dernières valeurs
+end note
+
+class BME280Sensor {
+    - _i2c : I2C&
+    + init() : bool
+    + read(float &temp, float &hum) : bool
+    + get_name() : const char*
+}
+
+class TH02Sensor {
+    - _i2c : I2C&
+    + init() : bool
+    + read(float &temp, float &hum) : bool
+    + get_name() : const char*
+}
+
+abstract class Amplifier {
+    + {abstract} on() : void
+    + {abstract} off() : void
+    + {abstract} log_status(float freq, float amp, float mod_rate) : void
+    + virtual ~Amplifier()
+}
+
+class PAM8302 {
+    - _sd_pin : DigitalOut
+    + on() : void
+    + off() : void
+    + log_status(float freq, float amp, float mod_rate) : void
+}
+note bottom of PAM8302
+  - Pilote la broche de coupure (Shutdown) pour éviter
+    les bruits parasites au démarrage
+  - Fournit un retour console sur l'état de l'amplification
+end note
+
+class Synth {
+    - _audio_out : AnalogOutISR
+    - _sample_ticker : Ticker
+    - _phase : float
+    - _phase_increment : float
+    - _mod_phase : float
+    - _mod_phase_increment : float
+    - _amplitude : float
+    - _frequency : float
+    - {static} SAMPLE_RATE : float = 22050.0f
+    - {static} PI : float = 3.14159f
+    --
+    + Synth(PinName out_pin)
+    + start() : void
+    + set_frequency(float freq) : void
+    + set_amplitude(float amp) : void
+    + set_mod_rate(float rate) : void
+    - sample_tick() : void
+}
+note top of Synth
+  - Utilise un Ticker mbed pour générer des
+    échantillons à 22,05 kHz via interruptions
+  - Gère une synthèse à base d'oscillateur avec
+    modulation de fréquence et d'amplitude
+  - set_frequency() : Ajuste la note de base
+  - set_mod_rate() : Ajuste la vitesse de modulation
+end note
+
+class AnalogOutISR {
+    + write_isr(float value) : void
+}
+note top of AnalogOutISR
+  - Extension de AnalogOut pour permettre
+    l'écriture directe dans les registres du DAC
+  - Sans verrouillage de mutex, essentiel
+    pour une utilisation dans une ISR
+end note
+
+Sensor <|-- BME280Sensor
+Sensor <|-- TH02Sensor
+Amplifier <|-- PAM8302
+Synth *-- AnalogOutISR
+AnalogOut <|-- AnalogOutISR
+
+@enduml

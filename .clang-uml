@@ -1,0 +1,13 @@
+compilation_database_dir: build
+output_directory: diagrams
+diagrams:
+  hot_humid_synth_class:
+    type: class
+    glob:
+      - src/*.cpp
+      - include/*.hpp
+    using_namespace: ""
+    exclude:
+      namespaces:
+        - std
+        - mbed

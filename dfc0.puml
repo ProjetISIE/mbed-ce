@@ -1,0 +1,34 @@
+@startuml
+!pragma useVerticalIf on
+
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam dpi 300
+
+title Diagramme de Flux de Contrôle de Niveau 0 (DFC0)
+
+package "Entités Externes" {
+    [Alimentation / Reset] as PWR
+    [Environnement] as ENV
+    [Journaux Évennements (Série)] as STATUS
+}
+
+node "Système Synthétiseur Température/Humidité" as System {
+    [Boucle de contrôle principale (main.cpp)] as C1
+}
+
+PWR --> C1 : Démarrage / Reset Système (Événement)
+ENV -up-> C1 : Seuil Temp/Hum Dépassé (Déclencheur)
+C1 --> STATUS : Système Prêt (Statut)
+C1 --> STATUS : Capteur OK/ÉCHEC (Statut)
+
+legend bottom
+  **Dictionnaire de Contrôle :**
+  * **Démarrage / Reset Système** : Signal physique de mise sous tension ou de réinitialisation
+  * **Seuil Temp/Hum Dépassé** : Événement de contrôle interne déclenché lorsque les données dépassent les valeurs de référence
+  * **Système Prêt** : Signal de contrôle indiquant que la calibration est terminée
+  * **Capteur OK/ÉCHEC** : Signaux de contrôle binaires basés sur la disponibilité des capteurs
+end legend
+
+@enduml

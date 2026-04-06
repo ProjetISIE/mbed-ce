@@ -1,0 +1,33 @@
+@startuml
+!pragma useVerticalIf on
+
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam dpi 300
+
+title Diagramme de Flux de Données de Niveau 0 (DFD0)
+
+package "Entités Externes" {
+    [Module BME280] as BME_EXT
+    [Module TH02] as TH02_EXT
+    [Module PAM8302] as AMP_EXT
+}
+
+node "Système Synthétiseur Température/Humidité" as System {
+    [Traitement Température & Humidité] as P1
+}
+
+BME_EXT --> P1 : Mesures (I2C)
+TH02_EXT --> P1 : Mesures (I2C)
+P1 --> AMP_EXT : Signal audio analogique
+P1 --> AMP_EXT : Signal d'arrêt numérique
+
+legend bottom
+  **Dictionnaire de Données :**
+  * **Données Brutes I2C** : Octets contenant les lectures de température et d'humidité
+  * **Signal DAC/PWM** : Signal analogique pour générer le son
+  * **Signal d'Arrêt** : Niveau logique haut/bas pour activer/désactiver l'amplificateur
+end legend
+
+@enduml
