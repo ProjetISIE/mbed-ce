@@ -27,7 +27,7 @@
                 [
                   bashInteractive
                   clang-tools # Clang CLIs, including LSP
-                  # clang-uml # UML diagram generator
+                  clang-uml # UML diagram generator
                   cmake-format # CMake formatter
                   cmake-language-server # Cmake LSP
                   # doxygen # Documentation generator
@@ -39,7 +39,7 @@
                   gcc-arm-embedded
                   gcovr
                   gdb
-                  # Python
+                  plantuml-c4
                   python3 # Python
                   # ruff # Fast lint and format
                   # ty # Type checker and LSP
