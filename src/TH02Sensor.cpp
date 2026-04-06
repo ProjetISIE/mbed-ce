@@ -20,8 +20,7 @@ bool TH02Sensor::init() {
 
   printf("[TH02] Init: write_ret=%d, read_ret=%d, ID=0x%02X\n", r_wr, r_rd,
          data);
-  // Some TH02 sensors return 0x50, some other values. We'll be lenient if it
-  // responds.
+  // Just ensure TH02 sensors responds
   return (r_wr == 0 && r_rd == 0);
 }
 
